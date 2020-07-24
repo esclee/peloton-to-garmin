@@ -33,6 +33,26 @@ def getInstructor(workout):
         if workout["peloton"]["ride"]["instructor"] is not None:
             return " with " + workout["peloton"]["ride"]["instructor"]["name"]
     return ""
+    
+def getDistanceMeters(workoutSamples):
+    try:
+        distanceSlug = next((x for x in workoutSamples["summaries"] if x["slug"] == "distance"), None)
+        if distanceSlug is not None:
+            distance = distanceSlug["value"]
+            distanceUnit = distanceSlug["display_unit"]
+            
+            totalMeters = distance
+            if distanceUnit == "mi":
+                totalMeters = distance * METERS_PER_MILE
+            elif distanceUnit == "km":
+                totalMeters = distance * 1000
+            else:
+                totalMeters = distance
+            return "{0:.1f}".format(totalMeters)
+    except Exception as e:
+            logger.error("Failed to Parse Distance - Exception: {}".format(e))
+    
+    return ""
 
 def workoutSamplesToTCX(workout, workoutSummary, workoutSamples, outputDir):
 
@@ -88,16 +108,8 @@ def workoutSamplesToTCX(workout, workoutSummary, workoutSamples, outputDir):
     notes = etree.Element("Notes")
     notes.text = title
 
-    try:
-        distanceMeters = etree.Element("DistanceMeters")
-        distanceMeters.text = ""
-        if len(workoutSamples["summaries"]) >= 2:
-            miles = workoutSamples["summaries"][1]["value"]
-            totalMeters = miles * METERS_PER_MILE
-            distanceMeters.text = "{0:.1f}".format(totalMeters)
-    except Exception as e:
-            logger.error("Failed to Parse Distance - Exception: {}".format(e))
-            return
+    distanceMeters = etree.Element("DistanceMeters")
+    distanceMeters.text = getDistanceMeters(workoutSamples)  
 
     try:
         maximumSpeed = etree.Element("MaximumSpeed")

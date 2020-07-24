@@ -96,3 +96,42 @@ class TestTcxBuilder:
         assert filename == "1574980432-20 min Walk + Run with Olivia Amato-af25d72ea4c0400daeac2707fc30994f.tcx"
         assert garmin_activity_type == "Running"
         assert os.path.exists(os.path.join(output_directory, filename))
+
+    def test_getDistanceMeters_km(self):
+        # Setup
+        workout_samples = self.loadTestData("peloton_workoutsamples_cycling.json")
+        workout_samples["summaries"][1]["display_unit"] = "km"
+        distance = workout_samples["summaries"][1]["value"]
+        expectedDistance = "{0:.1f}".format(distance * 1000)
+
+        # Act
+        distanceMeters = tcx_builder.getDistanceMeters(workout_samples)
+
+        # Assert
+        assert distanceMeters == expectedDistance
+    
+    def test_getDistanceMeters_mi(self):
+        # Setup
+        workout_samples = self.loadTestData("peloton_workoutsamples_cycling.json")
+        workout_samples["summaries"][1]["display_unit"] = "mi"
+        distance = workout_samples["summaries"][1]["value"]
+        expectedDistance = "{0:.1f}".format(distance * tcx_builder.METERS_PER_MILE)
+
+        # Act
+        distanceMeters = tcx_builder.getDistanceMeters(workout_samples)
+
+        # Assert
+        assert distanceMeters == expectedDistance
+    
+    def test_getDistanceMeters_m(self):
+        # Setup
+        workout_samples = self.loadTestData("peloton_workoutsamples_cycling.json")
+        workout_samples["summaries"][1]["display_unit"] = "m"
+        distance = workout_samples["summaries"][1]["value"]
+        expectedDistance = "{0:.1f}".format(distance)
+
+        # Act
+        distanceMeters = tcx_builder.getDistanceMeters(workout_samples)
+
+        # Assert
+        assert distanceMeters == expectedDistance
